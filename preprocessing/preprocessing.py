@@ -80,6 +80,8 @@ def tokenizer_mml(mml_args):
     temp_list = eliminate_keywords(input_file)
     reduced_temp_list = reduce_mml(temp_list)
     
+    for r in reduced_temp_list:
+        output_file.write(r+'\n')
 
 def main(args):
     tokenizer_latex(args[0:2])
