@@ -1,32 +1,6 @@
 import os, shutil, subprocess, sys, argparse, logging
 from mml_cleaner import eliminate_keywords, reduce_mml
 
-def process_args(args, latex_flag=True):
-    parser = argparse.ArgumentParser(description='Preprocess formulas')
-    
-    if latex_flag:
-        parser.add_argument('--input-latex-file', dest='input_latex_file',
-                            type=str, required=True,
-                            help=('Input file containing latex formulas. One formula per line.'
-                            ))
-        parser.add_argument('--output-latex-file', dest='output_latex_file',
-                            type=str, required=True,
-                            help=('Output file.'
-                            ))
-    else:
-        parser.add_argument('--input-mml-file', dest='input_mml_file',
-                            type=str, required=True,
-                            help=('Input file containing mml formulas. One formula per line.'
-                            ))
-        parser.add_argument('--output-mml-file', dest='output_mml_file',
-                            type=str, required=True,
-                            help=('Output file.'
-                            ))
-        
-    parameters = parser.parse_args(args)
-    return parameters
-
-
 def is_ascii(str):
     try:
         str.decode('ascii')
@@ -82,12 +56,4 @@ def tokenizer_mml(mml_args):
     
     for r in reduced_temp_list:
         output_file.write(r+'\n')
-
-def main(args):
-    tokenizer_latex(args[0:2])
-    tokenizer_mml(args[2:])
-    
-    
-if __name__ == '__main__':
-    main(sys.argv[1:])
     
