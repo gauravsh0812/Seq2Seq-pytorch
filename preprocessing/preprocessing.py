@@ -3,7 +3,7 @@ import pandas as pd
 import random, torch, argparse, sys
 from sklearn.model_selection import train_test_split
 from torchtext.legacy.data import Field, BucketIterator
-from tokenization import tokenizer_latex, tokenizer_mml
+from preprep_files import preprep_latex, preprep_mml
 
 # set up seed
 SEED = 1234
@@ -34,9 +34,13 @@ def process_args(args):
     return parameters
 
 def preprocess(parameters):
+    
+    # preparing files for further preprocessing
+    
+    
     # reading raw text files
-    latex_txt = open(parameters.input-latex-file).read().split('\n')
-    mml_txt = open(parametres.input-mml-file).read().split('\n')
+    latex_txt = open(parameters.input_latex_file).read().split('\n')
+    mml_txt = open(parametres.input_mml_file).read().split('\n')
     raw_data = {'Latex': [Line for Line in latex_txt],
                 'MML': [Line for Line in mml_txt]}
     
@@ -54,13 +58,13 @@ def preprocess(parameters):
     val.to_json('data/val.json', orient='records', lines=True)
      
     # setting Fields
-    SRC = Field(tokenize = tokenizer_latex(text), 
+    SRC = Field( 
                 init_token = '<sos>', 
                 eos_token = '<eos>', 
                 fix_length = 150
                 )
                 
-    TRG = Field(tokenize = tokenizer_mml(text), 
+    TRG = Field( 
                 init_token = '<sos>', 
                 eos_token = '<eos>', 
                 fix_length = 150
@@ -75,13 +79,17 @@ def preprocess(parameters):
           format     = 'json',
           fields     = fields) 
     
+    # building vocab
+    SRC.build_vocab(train_data, min_freq = 10)
+    TRG.build_vocab(train_data, min_freq = 10)
+    
     # Iterator
     train_iter, test_iter, val_iter = BucketIterator(
             (train_data, test_data, val_data), 
             device = devie, 
             batch_size = 256)
     
-    # building vocab
+    
     
 
 def main(args):

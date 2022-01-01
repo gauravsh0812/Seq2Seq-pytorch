@@ -57,7 +57,7 @@ def reduce_mml(temp_list):
             idxs_close = []
             for ind, i in enumerate(f.split()):
                 if i == '<mrow>':
-                    idxs_open.append(ind)
+                    idxs_open.append(ind)s
                 if i == '</mrow>':
                     idxs_close.append(ind)
             for o,c in zip(idxs_open, idxs_close):
