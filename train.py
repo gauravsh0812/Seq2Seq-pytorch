@@ -55,8 +55,8 @@ def train(model, iterator, optimizer, criterion, clip):
     
     for i, batch in enumerate(iterator):
         
-        src = batch.src
-        trg = batch.trg
+        src = batch.latex
+        trg = batch.mml
         print(src)
         print(trg)
         optimizer.zero_grad()

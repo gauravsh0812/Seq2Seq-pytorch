@@ -22,7 +22,7 @@ class Encoder(nn.Module):
     embedded = self.drop(self.embed(input))
     # ouput -- [input_len, batch_size, hidd_dim*(n=1/2(if bidirectional))]
     # hidden, cell = [n_layer*n_direction, batch_size, hidd_dim]
-    output, (hidden, cell) = self.LSTM(embedded)
+    output, (hidden, cell) = self.lstm(embedded)
 
     return (hidden, cell)
 
@@ -33,6 +33,7 @@ class Decoder(nn.Module):
     
     self.hidd_dim = hidd_dim
     self.n_layer = n_layer
+    self.output_dim = output_dim
     self.embed = nn.Embedding(output_dim, emb_dim)
     self.lstm = nn.LSTM(emb_dim, hidd_dim, n_layer, dropout=dropout)
     self.fc = nn.Linear(hidd_dim, output_dim)
