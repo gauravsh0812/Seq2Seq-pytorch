@@ -24,8 +24,8 @@ for epoch in range(N_EPOCHS):
     
     start_time = time.time()
     
-    train_loss = train(define_model().model, train_iter, optimizer, criterion, CLIP)
-    valid_loss = evaluate(define_model().model, val_iter, criterion)
+    train_loss = train(define_model()[0], train_iter, optimizer, criterion, CLIP)
+    valid_loss = evaluate(define_model()[0], val_iter, criterion)
     
     end_time = time.time()
     
@@ -33,15 +33,15 @@ for epoch in range(N_EPOCHS):
     
     if valid_loss < best_valid_loss:
         best_valid_loss = valid_loss
-        torch.save(define_model().model.state_dict(), 'tut1-model.pt')
+        torch.save(define_model()[0].state_dict(), 'tut1-model.pt')
     
     print(f'Epoch: {epoch+1:02} | Time: {epoch_mins}m {epoch_secs}s')
     print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
     print(f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
 
 
-define_model().model.load_state_dict(torch.load('tut1-model.pt'))
+define_model()[0].load_state_dict(torch.load('tut1-model.pt'))
 
-test_loss = evaluate(define_model().model, test_iter, criterion)
+test_loss = evaluate(define_model()[0], test_iter, criterion)
 
 print(f'| Test Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f} |')

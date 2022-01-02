@@ -34,16 +34,16 @@ def init_weights(m):
     for name, param in m.named_parameters():
         nn.init.uniform_(param.data, -0.08, 0.08)
         
-define_model().apply(init_weights)
+define_model()[0].apply(init_weights)
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-print(f'The model has {count_parameters(define_model()):,} trainable parameters')
+print(f'The model has {count_parameters(define_model()[0]):,} trainable parameters')
 
-optimizer = optim.Adam(define_model().parameters())
+optimizer = optim.Adam(define_model()[0].parameters())
 
-TRG_PAD_IDX = define_model().TRG.vocab.stoi[define_model().TRG.pad_token]
+TRG_PAD_IDX = define_model()[1].vocab.stoi[define_model()[1].pad_token]
 
 criterion = nn.CrossEntropyLoss(ignore_index = TRG_PAD_IDX)
 
