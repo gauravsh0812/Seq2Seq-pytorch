@@ -3,7 +3,6 @@ import pandas as pd
 import random, torch, argparse, sys
 from sklearn.model_selection import train_test_split
 from torchtext.legacy.data import Field, BucketIterator
-from preprep_files import preprep_latex, preprep_mml
 
 # set up seed
 SEED = 1234
@@ -16,31 +15,11 @@ torch.use_deterministic_algorithms(True)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def process_args(args):
-    parser = argparse.ArgumentParser(description='Preprocess formulas')
-    
-
-    parser.add_argument('--input_latex_file', dest='input_latex_file',
-                        type=str, required=True,
-                        help=('Input file containing latex formulas. One formula per line.'
-                        ))
-
-    parser.add_argument('--input_mml_file', dest='input_mml_file',
-                        type=str, required=True,
-                        help=('Input file containing mml formulas. One formula per line.'
-                        ))
-
-    parameters = parser.parse_args(args)
-    return parameters
-
-def preprocess(parameters):
-    
-    # preparing files for further preprocessing
-    
+def preprocess():
     
     # reading raw text files
-    latex_txt = open(parameters.input_latex_file).read().split('\n')
-    mml_txt = open(parametres.input_mml_file).read().split('\n')
+    latex_txt = open('data/latex.txt').read().split('\n')
+    mml_txt = open('data/mml.txt').read().split('\n')
     raw_data = {'Latex': [Line for Line in latex_txt],
                 'MML': [Line for Line in mml_txt]}
     
@@ -89,13 +68,5 @@ def preprocess(parameters):
             device = devie, 
             batch_size = 256)
     
-    
-    
-
-def main(args):
-    parameters = process_args(args)
-    preprocess(parameters)
-    
-if __name__ == '__main__':
-    main(sys.argv[1:])
+    return SRC, TRG, train_iter, test_iter, val_iter
     
