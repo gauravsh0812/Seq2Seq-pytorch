@@ -3,7 +3,7 @@
 import torch
 from train import train, define_model, optimizer, criterion
 from test import evaluate 
-from preprocessing import preprocess
+from preprocessing.preprocessing import preprocess
 import time
 import math
 

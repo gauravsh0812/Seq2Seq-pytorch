@@ -4,7 +4,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from model import Encoder, Decoder, Seq2Seq
-from preprocessing import preprocess
+#from preprocessing import preprocess
+from preprocessing.preprocessing import preprocess
 
 
 def define_model():
