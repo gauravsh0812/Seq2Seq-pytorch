@@ -6,6 +6,14 @@ from test import evaluate
 from preprocessing.preprocessing import preprocess
 import time
 import math
+import argparse
+
+# argument
+parser = argparse.ArgumentParser()
+parser.add_argument( '--learning_phrase', type=int, metavar='', required=True, 
+                    help='Learning Phrase Decoder')
+args = parser.parse_args()
+
 
 def epoch_time(start_time, end_time):
     elapsed_time = end_time - start_time

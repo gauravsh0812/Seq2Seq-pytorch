@@ -3,12 +3,12 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from model import Encoder, Decoder, Seq2Seq
+from model import Encoder, Decoder, LearningPhrase_Decoder, Seq2Seq
 #from preprocessing import preprocess
 from preprocessing.preprocessing import preprocess
 
 
-def define_model():
+def define_model(learning_phrase=0):
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
@@ -25,8 +25,9 @@ def define_model():
     
     enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
     dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
+    lp_dec = LearningPhrase_Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
     
-    model = Seq2Seq(enc, dec, device).to(device)
+    model = Seq2Seq(enc, dec, lp_dec, learning_phrase, device).to(device)
     
     return model, TRG
     
