@@ -56,7 +56,7 @@ class Decoder(nn.Module):
     # Since hidden dim are same, we do not need an additional fc layer
     # but we will goin to need fc layer for enc_output layer. 
     # But now we are not using enc_output.
-    output, (hidden_dec_forward_backward, cell_dec_forward_backward) = self.lstm(embedded, hidden, cell) # hidden, cell as context vector from encoder
+    output, (hidden_dec_forward_backward, cell_dec_forward_backward) = self.lstm(embedded, hidden.unsqueeze(0), cell.unsqueeze(0)) # hidden, cell as context vector from encoder
     hidden = hidden_dec_forward_backward
     cell = cell_dec_forward_backward
     # prediction -- [batch_size, output_dim]
@@ -91,7 +91,7 @@ class LearningPhrase_Decoder(nn.Module):
         # context will be added at each step during decoding
         
         embedded_concat = torch.cat((embedded, context), dim=2)
-        output, (hidden_lp, cell_lp) = self.lstm(embedded_concat, hidden, cell) 
+        output, (hidden_lp, cell_lp) = self.lstm(embedded_concat, hidden.unsqueeze(0), cell.unsqueeze(0)) 
         output_concat = torch.cat((output.squueze(0), context.squeeze(0), embedded.squeeze(0)), dim =1)
         hidden = hidden_lp#torch.tanh(self.fc_hidd(torch.cat((hidden_lp[-2,:,:], hidden_lp[-1,:,:]),dim =1)))
         cell = cell_lp#torch.tanh(self.fc_hidd(torch.cat((cell_lp[-2,:,:], cell_lp[-1,:,:]),dim =1)))
