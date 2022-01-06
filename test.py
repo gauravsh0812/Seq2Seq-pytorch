@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import torch
+#import torch.nn as nn
+#import torch.optim as optim
+#from model.model import Encoder, Decoder, LearningPhrase_Decoder, Seq2Seq
+#from preprocessing.preprocessing import preprocess
 
 def evaluate(model, iterator, criterion):
     
@@ -12,8 +16,8 @@ def evaluate(model, iterator, criterion):
     
         for i, batch in enumerate(iterator):
 
-            src = batch.src
-            trg = batch.trg
+            src = batch.latex
+            trg = batch.mml
 
             output = model(src, trg, 0) #turn off teacher forcing
 

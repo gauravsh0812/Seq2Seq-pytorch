@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import torch
-import torch.nn as nn
-import torch.optim as optim
-from model import Encoder, Decoder, LearningPhrase_Decoder, Seq2Seq
+#import torch.nn as nn
+#import torch.optim as optim
+#from model.model import Encoder, Decoder, LearningPhrase_Decoder, Seq2Seq
 #from preprocessing import preprocess
-from preprocessing.preprocessing import preprocess
+#from preprocessing.preprocessing import preprocess
 
-
+'''
 def define_model(learning_phrase=0):
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -47,7 +47,7 @@ optimizer = optim.Adam(define_model()[0].parameters())
 TRG_PAD_IDX = define_model()[1].vocab.stoi[define_model()[1].pad_token]
 
 criterion = nn.CrossEntropyLoss(ignore_index = TRG_PAD_IDX)
-
+'''
 def train(model, iterator, optimizer, criterion, clip):
     
     model.train()

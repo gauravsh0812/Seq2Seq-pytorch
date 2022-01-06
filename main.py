@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import torch
-from train import train, define_model, optimizer, criterion
+import torch.nn as nn
+import torch.optim as optim
+from train import train
 from test import evaluate 
 from preprocessing.preprocessing import preprocess
+from model.model import Encoder, Decoder, LearningPhrase_Decoder, Seq2Seq
 import time
 import math
 import argparse
@@ -27,6 +30,47 @@ CLIP = 1
 best_valid_loss = float('inf')
 
 _, _, train_iter, test_iter, val_iter = preprocess()
+
+def define_model(learning_phrase=0):
+    
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    SRC, TRG, train_iter, _, val_iter = preprocess()
+    
+    INPUT_DIM = len(SRC.vocab)
+    OUTPUT_DIM = len(TRG.vocab)
+    ENC_EMB_DIM = 256
+    DEC_EMB_DIM = 256
+    HID_DIM = 512
+    N_LAYERS = 2
+    ENC_DROPOUT = 0.5
+    DEC_DROPOUT = 0.5
+    
+    enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
+    dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
+    lp_dec = LearningPhrase_Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
+    
+    model = Seq2Seq(enc, dec, lp_dec, learning_phrase, device).to(device)
+    
+    return model, TRG
+
+def init_weights(m):
+    for name, param in m.named_parameters():
+        nn.init.uniform_(param.data, -0.08, 0.08)
+        
+define_model()[0].apply(init_weights)
+
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+print(f'The model has {count_parameters(define_model()[0]):,} trainable parameters')
+
+optimizer = optim.Adam(define_model()[0].parameters())
+
+TRG_PAD_IDX = define_model()[1].vocab.stoi[define_model()[1].pad_token]
+
+criterion = nn.CrossEntropyLoss(ignore_index = TRG_PAD_IDX)
+
 
 for epoch in range(N_EPOCHS):
     
