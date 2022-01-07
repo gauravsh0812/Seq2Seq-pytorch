@@ -5,7 +5,7 @@ import torch.nn as nn
 import random
 import torch.nn.functional as F
 
-class Encoder(nn.Module):
+class Encoder_Attn(nn.Module):
     def __init__(self, input_dim, emb_dim, enc_hidd_dim, dec_hidd_dim, n_layer, dropout):
         
         super().__init__()
@@ -59,7 +59,7 @@ class Attention(nn.Module):
             
             return F.softmax(attn_vector, dim=1)
 
-class Decoder(nn.Module):
+class Decoder_Attn(nn.Module):
     def __init__(self, output_dim, emb_dim, enc_hidd_dim, dec_hidd_dim, n_layer, dropout, attention):
         
         super().__init__()
@@ -99,7 +99,7 @@ class Decoder(nn.Module):
         
         return prediction, hidden.squeeze(0)
     
-class Seq2Seq(nn.Module):
+class Seq2Seq_Attn(nn.Module):
     def __init__(self, encoder, decoder, attention, device):
         
         super().__init__()
