@@ -47,11 +47,12 @@ def define_model(args_learning_phrase, args_attn, args_cnn, SRC, TRG, train_iter
         model = Seq2Seq_Attn(enc, dec, attention, device).to(device)
         
     else:
+        
         enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
         dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
         lp_dec = LearningPhrase_Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
         
-        model = Seq2Seq(enc, dec, lp_dec, args_learning_phrase, device).to(device)
+        model = Seq2Seq(enc, dec, lp_dec, device, args_learning_phrase).to(device)
         
     return model
 
