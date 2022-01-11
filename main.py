@@ -52,7 +52,9 @@ def define_model(args_learning_phrase, args_attn, args_cnn, SRC, TRG, train_iter
         dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
         lp_dec = LearningPhrase_Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
         
-        model = Seq2Seq(enc, dec, lp_dec, device, args_learning_phrase).to(device)
+        DEC = dec if args_learning_phrase == 0 else lp_dec
+        
+        model = Seq2Seq(enc, DEC, device, args_learning_phrase).to(device)
         
     return model
 

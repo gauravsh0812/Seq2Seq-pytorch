@@ -102,19 +102,16 @@ class LearningPhrase_Decoder(nn.Module):
         return (prediction, hidden, cell)
 
 class Seq2Seq(nn.Module):
-    def __init__(self, encoder, decoder, lp_decoder, device, learning_phrase=0):
+    def __init__(self, encoder, decoder, device, learning_phrase=0):
         
         super().__init__()
         
         self.encoder = encoder
         self.device = device
-        
-        if learning_phrase == 1: self.DEC = lp_decoder
-        if learning_phrase == 0: self.DEC = decoder
-        
-        assert encoder.hidd_dim == DEC.hidd_dim, \
+        self.decoder = decoder
+        assert encoder.hidd_dim == decoder.hidd_dim, \
             "Hidden dimensions of encoder and decoder must be equal!"
-        assert encoder.n_layer == DEC.n_layer, \
+        assert encoder.n_layer == decoder.n_layer, \
             "Encoder and decoder must have equal number of layers!"
     
         
