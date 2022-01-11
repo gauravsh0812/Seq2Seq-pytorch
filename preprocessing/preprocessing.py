@@ -39,7 +39,7 @@ def preprocess(args_cnn, device):
     # setting Fields
     # tokenizer will going be default tokenizer i.e. split by spaces
     # all the input files must be prepared accordingly
-    if not args_cnn:
+    if args_cnn == 0:
         SRC = Field( 
                     init_token = '<sos>', 
                     eos_token = '<eos>', 

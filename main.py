@@ -16,9 +16,9 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument( '--learning_phrase', type=int, metavar='', required=True, 
                     help='Learning Phrase Decoder')
-parser.add_argument( '--attention', type=bool, metavar='', required=True, 
+parser.add_argument( '--attention', type=int, metavar='', required=True, 
                     help='run model with attention')
-parser.add_argument( '--CNN', type=bool, metavar='', required=True, 
+parser.add_argument( '--CNN', type=int, metavar='', required=True, 
                     help='use CNN2CNN for Seq2Seq')
 args = parser.parse_args()
 
@@ -31,7 +31,7 @@ def define_model(args_learning_phrase, args_attn, args_cnn, SRC, TRG, train_iter
     OUTPUT_DIM = len(TRG.vocab)
     ENC_EMB_DIM = 256
     DEC_EMB_DIM = 256
-    if not args.attention: HID_DIM = 512
+    if args_attn == 0: HID_DIM = 512
     else:
         ENC_HID_DIM = 512
         DEC_HID_DIM = 512
@@ -39,7 +39,7 @@ def define_model(args_learning_phrase, args_attn, args_cnn, SRC, TRG, train_iter
     ENC_DROPOUT = 0.5
     DEC_DROPOUT = 0.5
     
-    if args_attn:
+    if args_attn == 1:
         attention = Attention(ENC_HID_DIM, DEC_HID_DIM)
         enc = Encoder_Attn(INPUT_DIM, ENC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, N_LAYERS, ENC_DROPOUT)
         dec = Decoder_Attn(OUTPUT_DIM, DEC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, N_LAYERS, DEC_DROPOUT, attention)
