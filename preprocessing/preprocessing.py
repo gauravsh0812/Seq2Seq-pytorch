@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import random, torch, argparse, sys
+import random, torch
 from sklearn.model_selection import train_test_split
 from torchtext.legacy.data import Field, BucketIterator, TabularDataset
 
@@ -13,9 +13,9 @@ torch.cuda.manual_seed(SEED)
 #only for CUDA
 torch.use_deterministic_algorithms(True)
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+#device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def preprocess():
+def preprocess(args_cnn, device):
     
     # reading raw text files
     latex_txt = open('data/latex.txt').read().split('\n')
@@ -37,17 +37,34 @@ def preprocess():
     val.to_json('data/val.json', orient='records', lines=True)
      
     # setting Fields
-    SRC = Field( 
-                init_token = '<sos>', 
-                eos_token = '<eos>', 
-                fix_length = 150
-                )
-                
-    TRG = Field( 
-                init_token = '<sos>', 
-                eos_token = '<eos>', 
-                fix_length = 150
-                )
+    # tokenizer will going be default tokenizer i.e. split by spaces
+    # all the input files must be prepared accordingly
+    if not args_cnn:
+        SRC = Field( 
+                    init_token = '<sos>', 
+                    eos_token = '<eos>', 
+                    fix_length = 150
+                    )
+                    
+        TRG = Field( 
+                    init_token = '<sos>', 
+                    eos_token = '<eos>', 
+                    fix_length = 150
+                    )
+    else:
+        SRC = Field( 
+                    init_token = '<sos>', 
+                    eos_token = '<eos>', 
+                    fix_length = 150, 
+                    batch_first = True
+                    )
+                    
+        TRG = Field( 
+                    init_token = '<sos>', 
+                    eos_token = '<eos>', 
+                    fix_length = 150, 
+                    batch_first = True
+                    )
     
     fields = {'Latex': ('latex', SRC) , 'MML': ('mml', TRG)}
     train_data, test_data, val_data = TabularDataset.splits(

@@ -18,6 +18,8 @@ parser.add_argument( '--learning_phrase', type=int, metavar='', required=True,
                     help='Learning Phrase Decoder')
 parser.add_argument( '--attention', type=bool, metavar='', required=True, 
                     help='run model with attention')
+parser.add_argument( '--CNN', type=bool, metavar='', required=True, 
+                    help='use CNN2CNN for Seq2Seq')
 args = parser.parse_args()
 
 
@@ -34,11 +36,11 @@ best_valid_loss = float('inf')
 
 _, _, train_iter, test_iter, val_iter = preprocess()
 
-def define_model(learning_phrase):
+def define_model(args_learning_phrase, args_attn, args_cnn):
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    SRC, TRG, train_iter, _, val_iter = preprocess()
+    SRC, TRG, train_iter, _, val_iter = preprocess(args_cnn, device)
     
     INPUT_DIM = len(SRC.vocab)
     OUTPUT_DIM = len(TRG.vocab)
@@ -52,7 +54,7 @@ def define_model(learning_phrase):
     ENC_DROPOUT = 0.5
     DEC_DROPOUT = 0.5
     
-    if args.attention:
+    if args_attn:
         attention = Attention(ENC_HID_DIM, DEC_HID_DIM)
         enc = Encoder_Attn(INPUT_DIM, ENC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, N_LAYERS, ENC_DROPOUT)
         dec = Decoder_Attn(OUTPUT_DIM, DEC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, N_LAYERS, DEC_DROPOUT, attention)
@@ -64,11 +66,11 @@ def define_model(learning_phrase):
         dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
         lp_dec = LearningPhrase_Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
         
-        model = Seq2Seq(enc, dec, lp_dec, learning_phrase, device).to(device)
+        model = Seq2Seq(enc, dec, lp_dec, args_learning_phrase, device).to(device)
         
     return model, TRG
 
-model, TRG = define_model(args.learning_phrase)
+model, TRG = define_model(args.learning_phrase, args.attention, args.CNN)
 
 def init_weights(m):
     for name, param in m.named_parameters():
