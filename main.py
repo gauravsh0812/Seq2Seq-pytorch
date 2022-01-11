@@ -31,7 +31,7 @@ def define_model(args_learning_phrase, args_attn, args_cnn, SRC, TRG, train_iter
     OUTPUT_DIM = len(TRG.vocab)
     ENC_EMB_DIM = 256
     DEC_EMB_DIM = 256
-    if args.attention: HID_DIM = 512
+    if not args.attention: HID_DIM = 512
     else:
         ENC_HID_DIM = 512
         DEC_HID_DIM = 512
