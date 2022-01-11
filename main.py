@@ -23,24 +23,9 @@ parser.add_argument( '--CNN', type=bool, metavar='', required=True,
 args = parser.parse_args()
 
 
-def epoch_time(start_time, end_time):
-    elapsed_time = end_time - start_time
-    elapsed_mins = int(elapsed_time / 60)
-    elapsed_secs = int(elapsed_time - (elapsed_mins * 60))
-    return elapsed_mins, elapsed_secs
-
-N_EPOCHS = 10
-CLIP = 1
-
-best_valid_loss = float('inf')
-
-_, _, train_iter, test_iter, val_iter = preprocess()
-
-def define_model(args_learning_phrase, args_attn, args_cnn):
+def define_model(args_learning_phrase, args_attn, args_cnn, SRC, TRG, train_iter, val_iter):
     
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    
-    SRC, TRG, train_iter, _, val_iter = preprocess(args_cnn, device)
+    #SRC, TRG, train_iter, _, val_iter = preprocess(args_cnn, device)
     
     INPUT_DIM = len(SRC.vocab)
     OUTPUT_DIM = len(TRG.vocab)
@@ -68,18 +53,37 @@ def define_model(args_learning_phrase, args_attn, args_cnn):
         
         model = Seq2Seq(enc, dec, lp_dec, args_learning_phrase, device).to(device)
         
-    return model, TRG
+    return model
 
-model, TRG = define_model(args.learning_phrase, args.attention, args.CNN)
 
 def init_weights(m):
     for name, param in m.named_parameters():
         nn.init.uniform_(param.data, -0.08, 0.08)
-        
-model.apply(init_weights)
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+def epoch_time(start_time, end_time):
+    elapsed_time = end_time - start_time
+    elapsed_mins = int(elapsed_time / 60)
+    elapsed_secs = int(elapsed_time - (elapsed_mins * 60))
+    return elapsed_mins, elapsed_secs
+
+
+N_EPOCHS = 10
+CLIP = 1
+
+best_valid_loss = float('inf')
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+SRC, TRG, train_iter, test_iter, val_iter = preprocess(args.CNN, device)
+
+model = define_model(args.learning_phrase, args.attention, 
+                          args.CNN, SRC, TRG, train_iter, val_iter)
+
+model.apply(init_weights)
+
 
 print(f'The model has {count_parameters(model):,} trainable parameters')
 
