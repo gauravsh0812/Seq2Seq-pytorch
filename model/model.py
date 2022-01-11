@@ -112,9 +112,9 @@ class Seq2Seq(nn.Module):
         if learning_phrase == 1: self.DEC = lp_decoder
         if learning_phrase == 0: self.DEC = decoder
         
-        assert encoder.hidd_dim == self.DEC.hidd_dim, \
+        assert encoder.hidd_dim == DEC.hidd_dim, \
             "Hidden dimensions of encoder and decoder must be equal!"
-        assert encoder.n_layer == self.DEC.n_layer, \
+        assert encoder.n_layer == DEC.n_layer, \
             "Encoder and decoder must have equal number of layers!"
     
         
