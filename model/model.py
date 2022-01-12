@@ -56,7 +56,7 @@ class Decoder(nn.Module):
     # Since hidden dim are same, we do not need an additional fc layer
     # but we will goin to need fc layer for enc_output layer. 
     # But now we are not using enc_output.
-    output, (hidden, cell) = self.lstm(embedded, hidden.unsqueeze(0), cell.unsqueeze(0)) # hidden, cell as context vector from encoder
+    output, hidden, cell = self.lstm(embedded, hidden.unsqueeze(0), cell.unsqueeze(0)) # hidden, cell as context vector from encoder
     # prediction -- [batch_size, output_dim]
     prediction = self.fc_out(output.squeeze(0))
     #hidden = torch.tanh(self.fc_hidd(torch.cat((hidden_dec_forward_backward[-2,:,:], hidden_dec_forward_backward[-1,:,:]),dim =1)))
