@@ -35,7 +35,7 @@ def define_model(args_learning_phrase, args_attn, args_cnn, SRC, TRG, train_iter
     else:
         ENC_HID_DIM = 512
         DEC_HID_DIM = 512
-    N_LAYERS = 2
+    N_LAYERS = 1
     ENC_DROPOUT = 0.5
     DEC_DROPOUT = 0.5
     

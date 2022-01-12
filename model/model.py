@@ -40,6 +40,7 @@ class Decoder(nn.Module):
     self.hidd_dim = hidd_dim
     self.n_layer = n_layer
     self.output_dim = output_dim
+    self.emb_dim = emb_dim
     self.embed = nn.Embedding(output_dim, emb_dim)
     self.lstm = nn.LSTM(emb_dim, hidd_dim, n_layer, dropout=dropout, bidirectional=False)
     #self.fc_hidd = nn.Linear(hidd_dim*2, hidd_dim)
@@ -60,7 +61,8 @@ class Decoder(nn.Module):
     # Since hidden dim are same, we do not need an additional fc layer
     # but we will goin to need fc layer for enc_output layer. 
     # But for now, we are not using enc_output.
-    output, hidden, cell = self.lstm(embedded, hidden.unsqueeze(0), cell.unsqueeze(0)) # hidden, cell as context vector from encoder
+    print(self.lstm)
+    output, (hidden, cell) = self.lstm(embedded, (hidden.unsqueeze(0), cell.unsqueeze(0))) # hidden, cell as context vector from encoder
     
     # prediction -- [batch_size, output_dim]
     prediction = self.fc_out(output.squeeze(0))
