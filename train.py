@@ -4,6 +4,8 @@ import torch
 
 def train(model, iterator, optimizer, criterion, clip):
     
+    print('Let\'s start training!')
+
     model.train()
     
     epoch_loss = 0

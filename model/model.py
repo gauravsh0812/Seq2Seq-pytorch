@@ -26,11 +26,11 @@ class Encoder(nn.Module):
     output, (hidden_enc_forward_backward, cell_enc_forward_backward) = self.lstm(embedded)
     hidden = torch.tanh(self.fc(torch.cat((hidden_enc_forward_backward[-2,:,:], hidden_enc_forward_backward[-1,:,:]),dim =1)))
     cell = torch.tanh(self.fc(torch.cat((cell_enc_forward_backward[-2,:,:], cell_enc_forward_backward[-1,:,:]),dim =1)))
-    print('====='*5)
-    print('encoder hidden fwd shape: ', hidden_enc_forward_backward.shape)
-    print('encoder hidden shape: ', hidden.shape)
-    print('enc hidden unsq shape: ', hidden.unsqueeze(0).shape)
-    return (hidden, cell)
+    #print('====='*5)
+    #print('encoder hidden fwd shape: ', hidden_enc_forward_backward.shape)
+    #print('encoder hidden shape: ', hidden.shape)
+    #print('enc hidden unsq shape: ', hidden.unsqueeze(0).shape)
+    return (hidden.unsqueeze(0), cell.unsqueeze(0))
 
 class Decoder(nn.Module):
   def __init__(self, output_dim, emb_dim, hidd_dim, n_layer, dropout):
@@ -60,9 +60,12 @@ class Decoder(nn.Module):
     # hidden, cell = [n_layer*n_direction, batch_size, hidd_dim] 
     # Since hidden dim are same, we do not need an additional fc layer
     # but we will goin to need fc layer for enc_output layer. 
-    # But for now, we are not using enc_output.
-    print(self.lstm)
-    output, (hidden, cell) = self.lstm(embedded, (hidden.unsqueeze(0), cell.unsqueeze(0))) # hidden, cell as context vector from encoder
+    # But for now, we are not using enc_output
+    
+    #print('=========='*5)
+    #print('hidden size:  ', hidden.shape)
+
+    output, (hidden, cell) = self.lstm(embedded, (hidden, cell)) # hidden, cell as context vector from encoder
     
     # prediction -- [batch_size, output_dim]
     prediction = self.fc_out(output.squeeze(0))

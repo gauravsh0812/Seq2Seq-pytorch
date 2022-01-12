@@ -8,6 +8,8 @@ import torch
 
 def evaluate(model, iterator, criterion):
     
+    print('Let\'s start testing! ')
+
     model.eval()
     
     epoch_loss = 0
