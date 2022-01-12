@@ -47,8 +47,8 @@ class Decoder(nn.Module):
     # hidden, cell == from the previous encoder
     # input -- [batch size] as input seq length and n_direction will always gonna be one
     # decoder decodes one token at a time only
-    # input.unsqeeze() -- [1, batch_size]
-    input = input.unsqeeze(0)
+    # input.unsqueeze() -- [1, batch_size]
+    input = input.unsqueeze(0)
     # embedded -- [1, batch_size, emb_dim]
     embedded = self.drop(self.embed(input))
     # ouput -- [1, batch_size, hidd_dim*(n=1/2(if bidirectional))]
@@ -82,8 +82,8 @@ class LearningPhrase_Decoder(nn.Module):
         # hidden, cell == from the previous encoder
         # input -- [batch size] as input seq length and n_direction will always gonna be one
         # decoder decodes one token at a time only
-        # input.unsqeeze() -- [1, batch_size]
-        input = input.unsqeeze(0)
+        # input.unsqueeze() -- [1, batch_size]
+        input = input.unsqueeze(0)
         # embedded -- [1, batch_size, emb_dim]
         embedded = self.drop(self.embed(input))
         # ouput -- [1, batch_size, hidd_dim*(n=1/2(if bidirectional))]

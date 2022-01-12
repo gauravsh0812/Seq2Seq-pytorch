@@ -58,8 +58,6 @@ def train(model, iterator, optimizer, criterion, clip):
         
         src = batch.latex
         trg = batch.mml
-        print(src)
-        print(trg)
         optimizer.zero_grad()
         
         output = model(src, trg)
