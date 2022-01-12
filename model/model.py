@@ -26,7 +26,10 @@ class Encoder(nn.Module):
     output, (hidden_enc_forward_backward, cell_enc_forward_backward) = self.lstm(embedded)
     hidden = torch.tanh(self.fc(torch.cat((hidden_enc_forward_backward[-2,:,:], hidden_enc_forward_backward[-1,:,:]),dim =1)))
     cell = torch.tanh(self.fc(torch.cat((cell_enc_forward_backward[-2,:,:], cell_enc_forward_backward[-1,:,:]),dim =1)))
-    
+    print('====='*5)
+    print('encoder hidden fwd shape: ', hidden_enc_forward_backward.shape)
+    print('encoder hidden shape: ', hidden.shape)
+    print('enc hidden unsq shape: ', hidden.unsqueeze(0).shape)
     return (hidden, cell)
 
 class Decoder(nn.Module):
@@ -43,7 +46,8 @@ class Decoder(nn.Module):
     self.fc_out = nn.Linear(hidd_dim, output_dim) 
     self.drop = nn.Dropout(dropout)
 
-  def forward(self, input, hidden, cell):#, context):
+  def forward(self, input, hidden, cell, _):
+    
     # hidden, cell == from the previous encoder
     # input -- [batch size] as input seq length and n_direction will always gonna be one
     # decoder decodes one token at a time only
@@ -55,8 +59,9 @@ class Decoder(nn.Module):
     # hidden, cell = [n_layer*n_direction, batch_size, hidd_dim] 
     # Since hidden dim are same, we do not need an additional fc layer
     # but we will goin to need fc layer for enc_output layer. 
-    # But now we are not using enc_output.
+    # But for now, we are not using enc_output.
     output, hidden, cell = self.lstm(embedded, hidden.unsqueeze(0), cell.unsqueeze(0)) # hidden, cell as context vector from encoder
+    
     # prediction -- [batch_size, output_dim]
     prediction = self.fc_out(output.squeeze(0))
     #hidden = torch.tanh(self.fc_hidd(torch.cat((hidden_dec_forward_backward[-2,:,:], hidden_dec_forward_backward[-1,:,:]),dim =1)))
@@ -137,7 +142,7 @@ class Seq2Seq(nn.Module):
             
             #insert input token embedding, previous hidden and previous cell states
             #receive output tensor (predictions) and new hidden and cell states
-            output, hidden, cell = self.decoder(input, hidden, cell)#, context)
+            output, hidden, cell = self.decoder(input, hidden, cell, context)
             
             #place predictions in a tensor holding predictions for each token
             outputs[t] = output
