@@ -139,7 +139,7 @@ class Seq2Seq(nn.Module):
             
             #insert input token embedding, previous hidden and previous cell states
             #receive output tensor (predictions) and new hidden and cell states
-            output, hidden, cell = self.DEC(input, hidden, cell, context)
+            output, hidden, cell = self.decoder(input, hidden, cell, context)
             
             #place predictions in a tensor holding predictions for each token
             outputs[t] = output

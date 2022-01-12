@@ -85,9 +85,8 @@ SRC, TRG, train_iter, test_iter, val_iter = preprocess(args.CNN, device)
 model = define_model(args.learning_phrase, args.attention, 
                           args.CNN, SRC, TRG, train_iter, val_iter)
 
-model.apply(init_weights)
-
-
+print('MODEL: ')
+print(model.apply(init_weights))
 print(f'The model has {count_parameters(model):,} trainable parameters')
 
 optimizer = optim.Adam(model.parameters())
