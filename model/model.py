@@ -43,7 +43,7 @@ class Decoder(nn.Module):
     self.fc_out = nn.Linear(hidd_dim, output_dim) 
     self.drop = nn.Dropout(dropout)
 
-  def forward(self, input, hidden, cell, context):
+  def forward(self, input, hidden, cell):#, context):
     # hidden, cell == from the previous encoder
     # input -- [batch size] as input seq length and n_direction will always gonna be one
     # decoder decodes one token at a time only
@@ -72,7 +72,7 @@ class LearningPhrase_Decoder(nn.Module):
         self.n_layer = n_layer
         self.output_dim = output_dim
         self.embed = nn.Embedding(output_dim, emb_dim)
-        self.lstm = nn.LSTM(emb_dim, hidd_dim, n_layer, dropout=dropout, bidirectional=True)
+        self.lstm = nn.LSTM(emb_dim, hidd_dim, n_layer, dropout=dropout, bidirectional=False)
         self.fc = nn.Linear(hidd_dim, output_dim)
         self.drop = nn.Dropout(dropout)
         
@@ -137,7 +137,7 @@ class Seq2Seq(nn.Module):
             
             #insert input token embedding, previous hidden and previous cell states
             #receive output tensor (predictions) and new hidden and cell states
-            output, hidden, cell = self.decoder(input, hidden, cell, context)
+            output, hidden, cell = self.decoder(input, hidden, cell)#, context)
             
             #place predictions in a tensor holding predictions for each token
             outputs[t] = output
