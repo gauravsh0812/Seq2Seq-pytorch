@@ -17,6 +17,8 @@ torch.use_deterministic_algorithms(True)
 
 def preprocess(args_cnn, device):
     
+    print('preprocessing data...')
+
     # reading raw text files
     latex_txt = open('data/latex.txt').read().split('\n')
     mml_txt = open('data/mml.txt').read().split('\n')

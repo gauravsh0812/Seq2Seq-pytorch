@@ -27,6 +27,8 @@ def define_model(args_learning_phrase, args_attn, args_cnn, SRC, TRG, train_iter
     
     #SRC, TRG, train_iter, _, val_iter = preprocess(args_cnn, device)
     
+    print('defining model...')
+
     INPUT_DIM = len(SRC.vocab)
     OUTPUT_DIM = len(TRG.vocab)
     ENC_EMB_DIM = 256
@@ -72,6 +74,7 @@ def epoch_time(start_time, end_time):
     elapsed_secs = int(elapsed_time - (elapsed_mins * 60))
     return elapsed_mins, elapsed_secs
 
+print('starting now!!')
 
 N_EPOCHS = 10
 CLIP = 1
