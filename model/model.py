@@ -123,7 +123,7 @@ class Seq2Seq(nn.Module):
             "Encoder and decoder must have equal number of layers!"
 
 
-    def forward(self, src, trg, teacher_forcing_ratio = 0.5):
+    def forward(self, src, trg, teacher_force_flag, teacher_forcing_ratio = 0.5):
 
         #src = [src len, batch size]
         #trg = [trg len, batch size]
