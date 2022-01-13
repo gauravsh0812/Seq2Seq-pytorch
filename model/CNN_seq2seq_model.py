@@ -68,5 +68,4 @@ class Encoder(nn.Module):
         combined_output = (conved + embedded.permute(0,2,1)) * self.scale # [batch, emb_dim, deq_len]
         combined_output = combined_output.permute(0,2, 1) # [batch, seq_len, emb_dim]
 
-        return conved, combined_output
-            
+        return conved, combined_out       put
