@@ -81,7 +81,7 @@ CLIP = 1
 
 best_valid_loss = float('inf')
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda:gpu_1' if torch.cuda.is_available() else 'cpu')
     
 SRC, TRG, train_iter, test_iter, val_iter = preprocess(args.CNN, device)
 
