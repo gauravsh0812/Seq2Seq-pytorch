@@ -19,7 +19,7 @@ def evaluate(model, iterator, criterion):
             src = batch.latex
             trg = batch.mml
 
-            output = model(src, trg, 0, False) #turn off teacher forcing
+            output = model(src, trg, 0) #turn off teacher forcing
 
             #trg = [trg len, batch size]
             #output = [trg len, batch size, output dim]

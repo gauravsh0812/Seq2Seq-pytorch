@@ -14,7 +14,7 @@ def train(model, iterator, optimizer, criterion, clip):
         trg = batch.mml
         optimizer.zero_grad()
 
-        output = model(src, trg, 0.5, True)
+        output = model(src, trg, 0.5)
 
         #trg = [trg len, batch size]
         #output = [trg len, batch size, output dim]
