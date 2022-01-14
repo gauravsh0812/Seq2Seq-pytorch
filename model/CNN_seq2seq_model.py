@@ -95,12 +95,18 @@ class Decoder(nn.Module):
                                           kernel_size = kernel_size) for _ in range(n_layers)])
             self.drop = nn.Dropout(dropout)
 
-        def attention(dec_conved, enc_conved, enc_combined):
-            # dec_conved = [b,trg_l,e]
+        def attention(conved, emb_conved, enc_conved, enc_combined):
+            # conved = [b,h,tl]
+            # emb_conved = [b,trg_l,e]
             # enc_conved/enc_combined = [b,src_l,e]
-            energy = torch.matmul(dec_conved, enc_conved.permute(0,2,1))  #[b,dec_l,src_l]
-            attn = F.softmax(energy)
-            attn_combined = torch.matmul(attn, enc_combined)
+            energy = torch.matmul(emb_conved, enc_conved.permute(0,2,1))  #[b,dec_l,src_l]
+            attn = F.softmax(energy)  # [b, tl, sl]
+            attn_encoding = torch.matmul(attn, enc_combined)  # [b, tl ,sl] [b, sl, e] --> [b, tl, e]
+            attn_encoding = self.fc_emb2hid(attn_encoding)  # [b, tl, h]
+            # residual connection of "attention block"
+            attn_combined = (attn_encoding.permute(0,2,1) + conved) * self.scale  # [b,h,tl]
+
+            return attn, attn_combined
 
         def forward(self, trg, enc_conved, enc_combined):
             # trg = [batch, trg_len]
@@ -116,7 +122,15 @@ class Decoder(nn.Module):
                 # pad_tensor = [b,h,k-1]
                 pad_tensor = torch.zeros(batch_size, hidd_dim, kernel_size-1).fill_(trg_pad_idx).to(self.device)
                 # conv_input = [b,h,l+k-1]
-                dec_conved = F.glu(self.drop(layer(torch.cat((conv_input, pad_tensor), dim=2))))  # dec_conved = [b,h,l]
-                dec_conved = self.fc_hid2emb(dec_conved)  # [b,e,l]
-                dec_conved = (dec_conved.permute(0,2,1) + embedded) * self.scale # [b,l,e]
-                attn, attn_combined = attention(dec_conved, enc_conved, enc_combined)
+                conved = F.glu(self.drop(layer(torch.cat((conv_input, pad_tensor), dim=2))))  # dec_conved = [b,h,l]
+                emb_conved = self.fc_hid2emb(dec_conved)  # [b,e,l]
+                emb_conved = (emb_conved.permute(0,2,1) + embedded) * self.scale # [b,l,e]
+                attn, attn_combined = attention(conved, emb_conved, enc_conved, enc_combined)
+                # final residual connection
+                combined = (attn_combined + conv_input) * self.scale   # [b,h,l]
+                conv_input  = combined
+
+            output = self.fc(self.drop(self.hid2emb(combined.permute(0,2,1))))      # [b,l,o]
+
+            return output, attn
+                
