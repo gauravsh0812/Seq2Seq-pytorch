@@ -25,6 +25,9 @@ class Encoder(nn.Module):
                                       out_channels = 2*hidd_dim,
                                       kernel_size = kernel_size,
                                       padding = (kernel_size -1) //2) for _ in range(n_layers)])
+                                      
+        # why kernel is (filter - 1//2):  https://discuss.pytorch.org/t/how-can-i-ensure-that-my-conv1d-retains-the-same-shape-with-unknown-sequence-lengths/73647
+
         self.drop = nn.Dropout(dropout)
 
 
@@ -69,3 +72,8 @@ class Encoder(nn.Module):
         combined_output = combined_output.permute(0,2, 1) # [batch, seq_len, emb_dim]
 
         return conved, combined_output
+
+class Decoder(nn.Module):
+        def __init__(self, ):
+
+            super().__init__()
