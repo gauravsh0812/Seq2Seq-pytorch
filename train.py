@@ -14,15 +14,25 @@ def train(model, iterator, optimizer, criterion, clip):
         trg = batch.mml
         optimizer.zero_grad()
 
-        output = model(src, trg, 0.5, True)
+        if args_cnn == 1:
+            # trg = [batch, trg_len]
+            trg = trg[:, :-1]
+            output = model(src, trg)   # [battch, trg_len-1, output_dim]
 
-        #trg = [trg len, batch size]
-        #output = [trg len, batch size, output dim]
+        else:
+            output = model(src, trg, True, 0.5)
+
+            #trg = [trg len, batch size]
+            #output = [trg len, batch size, output dim]
 
         output_dim = output.shape[-1]
 
-        output = output[1:].view(-1, output_dim)
-        trg = trg[1:].view(-1)
+        if args_cnn == 1:
+            output = output.view(-1, output_dim)
+            trg = trg[:, 1:].veiw(-1)
+        else:
+            output = output[1:].view(-1, output_dim)
+            trg = trg[1:].view(-1)
 
         #trg = [(trg len - 1) * batch size]
         #output = [(trg len - 1) * batch size, output dim]

@@ -19,15 +19,26 @@ def evaluate(model, iterator, criterion):
             src = batch.latex
             trg = batch.mml
 
-            output = model(src, trg, 0, False) #turn off teacher forcing
+            if args_cnn == 1:
+                # trg = [batch, trg_len]
+                trg = trg[:, :-1]
+                output = model(src, trg)   # [battch, trg_len-1, output_dim]
+
+            else:
+                output = model(src, trg, True, 0)   # turn off teacher_forcing
+
 
             #trg = [trg len, batch size]
             #output = [trg len, batch size, output dim]
 
             output_dim = output.shape[-1]
 
-            output = output[1:].view(-1, output_dim)
-            trg = trg[1:].view(-1)
+            if args_cnn == 1:
+                output = output.view(-1, output_dim)
+                trg = trg[:, 1:].veiw(-1)
+            else:
+                output = output[1:].view(-1, output_dim)
+                trg = trg[1:].view(-1)
 
             #trg = [(trg len - 1) * batch size]
             #output = [(trg len - 1) * batch size, output dim]

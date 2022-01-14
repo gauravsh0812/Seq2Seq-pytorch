@@ -7,7 +7,8 @@ from train import train
 from test import evaluate
 from preprocessing.preprocessing import preprocess
 from model.model import Encoder, Decoder, LearningPhrase_Decoder, Seq2Seq
-from model.model_with_attention import Encoder_Attn, Decoder_Attn,Seq2Seq_Attn, Attention
+from model.model_with_attention import Encoder_Attn, Decoder_Att, Seq2Seq_Attn, Attention
+from model.CNN_seq2seq_model import Encoder_CNN, Decoder_CNN, Seq2Seq_CNN
 import time
 import math
 import argparse
@@ -16,14 +17,14 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument( '--learning_phrase', type=int, metavar='', required=True,
                     help='Learning Phrase Decoder')
-parser.add_argument( '--attention', type=int, metavar='', required=True,
+parser.add_argument( '--Seq2Seq_with_attention', type=int, metavar='', required=True,
                     help='run model with attention')
-parser.add_argument( '--CNN', type=int, metavar='', required=True,
+parser.add_argument( '--CNN_Seq2Seq_with_attention', type=int, metavar='', required=True,
                     help='use CNN2CNN for Seq2Seq')
 args = parser.parse_args()
 
 
-def define_model(args_learning_phrase, args_attn, args_cnn, SRC, TRG, train_iter, val_iter):
+def define_model(args_learning_phrase, args_attn, args_cnn, SRC, TRG, device):
 
     #SRC, TRG, train_iter, _, val_iter = preprocess(args_cnn, device)
 
@@ -31,32 +32,43 @@ def define_model(args_learning_phrase, args_attn, args_cnn, SRC, TRG, train_iter
 
     INPUT_DIM = len(SRC.vocab)
     OUTPUT_DIM = len(TRG.vocab)
+    TRG_PAD_IDX = TRG.vocab.stoi[TRG.pad_token]
     ENC_EMB_DIM = 256
     DEC_EMB_DIM = 256
-    if args_attn == 0: HID_DIM = 512
-    else:
-        ENC_HID_DIM = 512
-        DEC_HID_DIM = 512
+    ENC_HID_DIM = 512
+    DEC_HID_DIM = 512
     N_LAYERS = 1
-    ENC_DROPOUT = 0.5
-    DEC_DROPOUT = 0.5
+    ENC_DROPOUT = 0.3
+    DEC_DROPOUT = 0.3
+    if args_cnn == 0:
+        ENC_LAYERS = 10
+        DEC_LAYERS = 10
+        ENC_KERNEL_SIZE = 3
+        DEC_KERNEL_SIZE = 3
 
-    if args_attn == 1:
+
+    if args_cnn == 1:
+        enc = Encoder_CNN(INPUT_DIM, ENC_EMB_DIM, ENC_HID_DIM, ENC_LAYERS, ENC_KERNEL_SIZE, ENC_DROPOUT,  device)
+        dec = Decoder_CNN(OUTPUT_DIM, DEC_EMB_DIM, DEC_HID_DIM, DEC_LAYERS, DEC_KERNEL_SIZE, DEC_DROPOUT, TRG_PAD_IDX, device)
+
+        model = Seq2Seq_CNN(enc, dec)
+
+    elif args_attn == 1:
         attention = Attention(ENC_HID_DIM, DEC_HID_DIM)
         enc = Encoder_Attn(INPUT_DIM, ENC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, N_LAYERS, ENC_DROPOUT)
         dec = Decoder_Attn(OUTPUT_DIM, DEC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, N_LAYERS, DEC_DROPOUT, attention)
 
-        model = Seq2Seq_Attn(enc, dec, attention, device).to(device)
+        model = Seq2Seq_Attn(enc, dec, attention, device)
 
     else:
 
-        enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
-        dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
-        lp_dec = LearningPhrase_Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
+        enc = Encoder(INPUT_DIM, ENC_EMB_DIM, ENC_HID_DIM, N_LAYERS, ENC_DROPOUT)
+        dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, DEC_HID_DIM, N_LAYERS, DEC_DROPOUT)
+        lp_dec = LearningPhrase_Decoder(OUTPUT_DIM, DEC_EMB_DIM, DEC_HID_DIM, N_LAYERS, DEC_DROPOUT)
 
         DEC = dec if args_learning_phrase == 0 else lp_dec
 
-        model = Seq2Seq(enc, DEC, device, args_learning_phrase).to(device)
+        model = Seq2Seq(enc, DEC, device, args_learning_phrase)
 
     return model
 
@@ -84,8 +96,10 @@ device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 
 SRC, TRG, train_iter, test_iter, val_iter = preprocess(args.CNN, device)
 
-model = define_model(args.learning_phrase, args.attention,
-                          args.CNN, SRC, TRG, train_iter, val_iter)
+TRG_PAD_IDX = TRG.vocab.stoi[TRG.pad_token]
+
+model = define_model(args.learning_phrase, args.Seq2Seq_with_attention,
+                          args.CNN_Seq2Seq_with_attention, SRC, TRG, device)
 model.to(device)
 
 print('MODEL: ')
@@ -93,9 +107,6 @@ print(model.apply(init_weights))
 print(f'The model has {count_parameters(model):,} trainable parameters')
 
 optimizer = optim.Adam(model.parameters())
-
-TRG_PAD_IDX = TRG.vocab.stoi[TRG.pad_token]
-
 criterion = nn.CrossEntropyLoss(ignore_index = TRG_PAD_IDX)
 
 
@@ -118,8 +129,11 @@ for epoch in range(N_EPOCHS):
     print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
     print(f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
 
-
-model.load_state_dict(torch.load('tut1-model.pt'))
+if args.Seq2Seq_with_attention ==1: model_name = 'seq2seq_attn'
+elif args.CNN_Seq2Seq_with_attention ==1:model_name = 'CNN_seq2seq'
+elif args.learning_phrase==1: model_name = 'seq2seq_lpr'
+else: model_name = 'seq2seq'
+model.load_state_dict(torch.load(f'{model_name}-model.pt'))
 
 test_loss = evaluate(model, test_iter, criterion)
 

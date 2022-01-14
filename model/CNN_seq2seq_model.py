@@ -3,7 +3,7 @@ import torchtext
 import torch.nn as nn
 import torch.nn.functional as F
 
-class Encoder(nn.Module):
+class Encoder_CNN(nn.Module):
 
     def __init__(self, input_dim, emb_dim, hidd_dim, n_layers, kernel_size, dropout, device, max_length = 150):
 
@@ -72,7 +72,7 @@ class Encoder(nn.Module):
 
         return conved, combined_output
 
-class Decoder(nn.Module):
+class Decoder_CNN(nn.Module):
         def __init__(self, output_dim, emb_dim, hidd_dim, n_layers, kernel_size, dropout, trg_pad_idx, device, max_length = 150):
 
             super().__init__()
@@ -134,7 +134,7 @@ class Decoder(nn.Module):
 
             return output, attn
 
-class Seq2Seq(nn.Module):
+class Seq2Seq_CNN(nn.Module):
     def __init__(self, encoder, decoder):
         super().__init__()
 
@@ -148,4 +148,4 @@ class Seq2Seq(nn.Module):
         enc_conved, enc_combined = self.encoder(src)
         output, attn = self.decoder(trg, enc_conved, enc_combined)
 
-        return output, attn
+        return output
