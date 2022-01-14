@@ -25,7 +25,7 @@ class Encoder(nn.Module):
                                       out_channels = 2*hidd_dim,
                                       kernel_size = kernel_size,
                                       padding = (kernel_size -1) //2) for _ in range(n_layers)])
-                                      
+
         # why kernel is (filter - 1//2):  https://discuss.pytorch.org/t/how-can-i-ensure-that-my-conv1d-retains-the-same-shape-with-unknown-sequence-lengths/73647
 
         self.drop = nn.Dropout(dropout)
@@ -67,13 +67,56 @@ class Encoder(nn.Module):
             conv_input = conved
 
         # final output
-        conved = self.fc_hid2emb(conved)  # [batch, emb_dim, seq_len]
-        combined_output = (conved + embedded.permute(0,2,1)) * self.scale # [batch, emb_dim, deq_len]
-        combined_output = combined_output.permute(0,2, 1) # [batch, seq_len, emb_dim]
+        conved = self.fc_hid2emb(conved.permute(0,2,1))  # [batch,  seq_len,emb_dim]
+        combined_output = (conved + embedded) * self.scale # [batch, seq_len, emb_dim]
 
         return conved, combined_output
 
 class Decoder(nn.Module):
-        def __init__(self, ):
+        def __init__(self, output_dim, emb_dim, hidd_dim, n_layers, kernel_size, dropout, trg_pad_idx, device, max_length = 150):
 
             super().__init__()
+            self.device = device
+            # to control the varince over different seeds
+            self.scale = torch.sqrt(torch.FloatTensor([0.5])).to(device)
+
+            self.kernel_size = kernel_size
+            self.device = device
+            self.trg_pad_idx = trg_pad_idx
+
+            self.token_emb = nn.Embedding(output_dim, emb_dim)
+            self.pos_emb = nn.Embedding(max_length, emb_dim)
+
+            self.fc_emb2hid = nn.Linear(emb_dim, hidd_dim)
+            self.fc_hid2emb = nn.Linear(hidd_dim, emb_dim)
+            self.fc = nn.Linear(emb_dim, output_dim)
+            self.conv_layers = nn.ModuleList([nn.Conv1d(in_channels = hidd_dim,
+                                          out_channels = 2*hidd_dim,
+                                          kernel_size = kernel_size) for _ in range(n_layers)])
+            self.drop = nn.Dropout(dropout)
+
+        def attention(dec_conved, enc_conved, enc_combined):
+            # dec_conved = [b,trg_l,e]
+            # enc_conved/enc_combined = [b,src_l,e]
+            energy = torch.matmul(dec_conved, enc_conved.permute(0,2,1))  #[b,dec_l,src_l]
+            attn = F.softmax(energy)
+            attn_combined = torch.matmul(attn, enc_combined)
+
+        def forward(self, trg, enc_conved, enc_combined):
+            # trg = [batch, trg_len]
+            batch_size = trg.shape[0]
+            trg_len = trg.shape[1]
+
+            # embedded = [batch, trg_len, emb_dim] == [b, l, e]
+            pos_tensor = torch.arrange(0, trg_len).unsqueeze(0).repeat(batch_size, 1).to(self.device)
+            embedded = self.drop(self.token_emb(trg) + self.pos_emb(pos_tensor))
+            conv_input = self.fc_emb2hid(embedded).permute(0,2,1)   # [b,h,l]
+            for layer in conv_layers:
+                # let's first do padding
+                # pad_tensor = [b,h,k-1]
+                pad_tensor = torch.zeros(batch_size, hidd_dim, kernel_size-1).fill_(trg_pad_idx).to(self.device)
+                # conv_input = [b,h,l+k-1]
+                dec_conved = F.glu(self.drop(layer(torch.cat((conv_input, pad_tensor), dim=2))))  # dec_conved = [b,h,l]
+                dec_conved = self.fc_hid2emb(dec_conved)  # [b,e,l]
+                dec_conved = (dec_conved.permute(0,2,1) + embedded) * self.scale # [b,l,e]
+                attn, attn_combined = attention(dec_conved, enc_conved, enc_combined)
