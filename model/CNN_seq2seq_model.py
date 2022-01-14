@@ -133,4 +133,19 @@ class Decoder(nn.Module):
             output = self.fc(self.drop(self.hid2emb(combined.permute(0,2,1))))      # [b,l,o]
 
             return output, attn
-                
+
+class Seq2Seq(nn.Module):
+    def __init__(self, encoder, decoder):
+        super().__init__()
+
+        self.encoder = encoder
+        self.decoder = decoder
+
+    def forward(self, src, trg):
+
+        # src = [batch, src_len]
+        # trg = [batch, trg_len-1] ; since we don't want to give <eos> as input token
+        enc_conved, enc_combined = self.encoder(src)
+        output, attn = self.decoder(trg, enc_conved, enc_combined)
+
+        return output, attn
