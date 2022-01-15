@@ -10,17 +10,18 @@ def train(model, iterator, optimizer, criterion, clip):
 
     for i, batch in enumerate(iterator):
 
-        src = batch.latex
-        trg = batch.mml
+        if args_attn ==1 or args_cnn==1:
+            src, src_len = batch.latex
+            trg = batch.mml
         optimizer.zero_grad()
 
         if args_cnn == 1:
             # trg = [batch, trg_len]
             trg = trg[:, :-1]
-            output = model(src, trg)   # [battch, trg_len-1, output_dim]
+            output = model(src, src_len, trg)   # [battch, trg_len-1, output_dim]
 
         else:
-            output = model(src, trg, True, 0.5)
+            output = model(src, src_len, trg, True, 0.5)
 
             #trg = [trg len, batch size]
             #output = [trg len, batch size, output dim]

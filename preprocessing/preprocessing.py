@@ -40,12 +40,13 @@ def preprocess(args_cnn, device):
 
     # setting Fields
     # tokenizer will going be default tokenizer i.e. split by spaces
-    # all the input files must be prepared accordingly
+    # all the src files must be prepared accordingly
     if args_cnn == 0:
         SRC = Field(
                     init_token = '<sos>',
                     eos_token = '<eos>',
-                    fix_length = 150
+                    fix_length = 150,
+                    include_lengths = True
                     )
 
         TRG = Field(
@@ -58,7 +59,8 @@ def preprocess(args_cnn, device):
                     init_token = '<sos>',
                     eos_token = '<eos>',
                     fix_length = 150,
-                    batch_first = True
+                    batch_first = True,
+                    include_lengths = True
                     )
 
         TRG = Field(
@@ -86,6 +88,7 @@ def preprocess(args_cnn, device):
             (train_data, test_data, val_data),
             device = device,
             batch_size = 256,
-            sort = False)
+            sort_within_batch = True,
+            sort_key = lambda x: len(x.src))
 
     return SRC, TRG, train_iter, test_iter, val_iter

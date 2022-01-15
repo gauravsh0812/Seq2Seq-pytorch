@@ -16,16 +16,16 @@ def evaluate(model, iterator, criterion):
 
         for i, batch in enumerate(iterator):
 
-            src = batch.latex
+            src, src_len = batch.latex
             trg = batch.mml
 
             if args_cnn == 1:
                 # trg = [batch, trg_len]
                 trg = trg[:, :-1]
-                output = model(src, trg)   # [battch, trg_len-1, output_dim]
+                output = model(src, src_len, trg)   # [battch, trg_len-1, output_dim]
 
             else:
-                output = model(src, trg, True, 0)   # turn off teacher_forcing
+                output = model(src, src_len, trg, True, 0)   # turn off teacher_forcing
 
 
             #trg = [trg len, batch size]

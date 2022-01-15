@@ -30,10 +30,10 @@ def define_model(args_learning_phrase, args_attn, args_cnn, SRC, TRG, device):
 
     print('defining model...')
 
-    INPUT_DIM = len(SRC.vocab)
+    src_DIM = len(SRC.vocab)
     OUTPUT_DIM = len(TRG.vocab)
     TRG_PAD_IDX = TRG.vocab.stoi[TRG.pad_token]
-    ENC_EMB_DIM = 256
+    SRC_PAD_IDX = SRC.vocab.stoi[SRC.pad_token]
     DEC_EMB_DIM = 256
     ENC_HID_DIM = 512
     DEC_HID_DIM = 512
@@ -48,21 +48,21 @@ def define_model(args_learning_phrase, args_attn, args_cnn, SRC, TRG, device):
 
 
     if args_cnn == 1:
-        enc = Encoder_CNN(INPUT_DIM, ENC_EMB_DIM, ENC_HID_DIM, ENC_LAYERS, ENC_KERNEL_SIZE, ENC_DROPOUT,  device)
+        enc = Encoder_CNN(src_DIM, ENC_EMB_DIM, ENC_HID_DIM, ENC_LAYERS, ENC_KERNEL_SIZE, ENC_DROPOUT,  device)
         dec = Decoder_CNN(OUTPUT_DIM, DEC_EMB_DIM, DEC_HID_DIM, DEC_LAYERS, DEC_KERNEL_SIZE, DEC_DROPOUT, TRG_PAD_IDX, device)
 
         model = Seq2Seq_CNN(enc, dec)
 
     elif args_attn == 1:
         attention = Attention(ENC_HID_DIM, DEC_HID_DIM)
-        enc = Encoder_Attn(INPUT_DIM, ENC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, N_LAYERS, ENC_DROPOUT)
+        enc = Encoder_Attn(src_DIM, ENC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, N_LAYERS, ENC_DROPOUT)
         dec = Decoder_Attn(OUTPUT_DIM, DEC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, N_LAYERS, DEC_DROPOUT, attention)
 
-        model = Seq2Seq_Attn(enc, dec, attention, device)
+        model = Seq2Seq_Attn(enc, dec, SRC_PAD_IDX device)
 
     else:
 
-        enc = Encoder(INPUT_DIM, ENC_EMB_DIM, ENC_HID_DIM, N_LAYERS, ENC_DROPOUT)
+        enc = Encoder(src_DIM, ENC_EMB_DIM, ENC_HID_DIM, N_LAYERS, ENC_DROPOUT)
         dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, DEC_HID_DIM, N_LAYERS, DEC_DROPOUT)
         lp_dec = LearningPhrase_Decoder(OUTPUT_DIM, DEC_EMB_DIM, DEC_HID_DIM, N_LAYERS, DEC_DROPOUT)
 
@@ -75,7 +75,10 @@ def define_model(args_learning_phrase, args_attn, args_cnn, SRC, TRG, device):
 
 def init_weights(m):
     for name, param in m.named_parameters():
-        nn.init.uniform_(param.data, -0.08, 0.08)
+        if 'weight' in name:
+            nn.init.normal_(param.data, mean=0, std=0.01)
+        else:
+            nn.init.constant_(param.data, 0)
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -109,6 +112,10 @@ print(f'The model has {count_parameters(model):,} trainable parameters')
 optimizer = optim.Adam(model.parameters())
 criterion = nn.CrossEntropyLoss(ignore_index = TRG_PAD_IDX)
 
+if args.Seq2Seq_with_attention ==1: model_name = 'seq2seq_attn'
+elif args.CNN_Seq2Seq_with_attention ==1:model_name = 'CNN_seq2seq'
+elif args.learning_phrase==1: model_name = 'seq2seq_lpr'
+else: model_name = 'seq2seq'
 
 for epoch in range(N_EPOCHS):
 
@@ -123,16 +130,12 @@ for epoch in range(N_EPOCHS):
 
     if valid_loss < best_valid_loss:
         best_valid_loss = valid_loss
-        torch.save(model.state_dict(), 'tut1-model.pt')
+        torch.save(model.state_dict(), f'{model_name}-model.pt')
 
     print(f'Epoch: {epoch+1:02} | Time: {epoch_mins}m {epoch_secs}s')
     print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
     print(f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
 
-if args.Seq2Seq_with_attention ==1: model_name = 'seq2seq_attn'
-elif args.CNN_Seq2Seq_with_attention ==1:model_name = 'CNN_seq2seq'
-elif args.learning_phrase==1: model_name = 'seq2seq_lpr'
-else: model_name = 'seq2seq'
 model.load_state_dict(torch.load(f'{model_name}-model.pt'))
 
 test_loss = evaluate(model, test_iter, criterion)
