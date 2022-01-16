@@ -40,7 +40,7 @@ def define_model(args_learning_phrase, args_attn, args_cnn, SRC, TRG, device):
     N_LAYERS = 1
     ENC_DROPOUT = 0.3
     DEC_DROPOUT = 0.3
-    if args_cnn == 0:
+    if args_cnn == 1:
         ENC_LAYERS = 10
         DEC_LAYERS = 10
         ENC_KERNEL_SIZE = 3
@@ -48,7 +48,7 @@ def define_model(args_learning_phrase, args_attn, args_cnn, SRC, TRG, device):
 
 
     if args_cnn == 1:
-        enc = Encoder_CNN(src_DIM, ENC_EMB_DIM, ENC_HID_DIM, ENC_LAYERS, ENC_KERNEL_SIZE, ENC_DROPOUT,  device)
+        enc = Encoder_CNN(SRC_DIM, ENC_EMB_DIM, ENC_HID_DIM, ENC_LAYERS, ENC_KERNEL_SIZE, ENC_DROPOUT,  device)
         dec = Decoder_CNN(OUTPUT_DIM, DEC_EMB_DIM, DEC_HID_DIM, DEC_LAYERS, DEC_KERNEL_SIZE, DEC_DROPOUT, TRG_PAD_IDX, device)
 
         model = Seq2Seq_CNN(enc, dec)
