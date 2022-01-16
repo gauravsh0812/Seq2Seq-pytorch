@@ -30,10 +30,11 @@ def define_model(args_learning_phrase, args_attn, args_cnn, SRC, TRG, device):
 
     print('defining model...')
 
-    src_DIM = len(SRC.vocab)
+    SRC_DIM = len(SRC.vocab)
     OUTPUT_DIM = len(TRG.vocab)
     TRG_PAD_IDX = TRG.vocab.stoi[TRG.pad_token]
     SRC_PAD_IDX = SRC.vocab.stoi[SRC.pad_token]
+    ENC_EMB_DIM = 256
     DEC_EMB_DIM = 256
     ENC_HID_DIM = 512
     DEC_HID_DIM = 512
@@ -116,9 +117,9 @@ print(f'The model has {count_parameters(model):,} trainable parameters')
 optimizer = optim.Adam(model.parameters())
 criterion = nn.CrossEntropyLoss(ignore_index = TRG_PAD_IDX)
 
-if args.Seq2Seq_with_attention ==1: model_name = 'seq2seq_attn'
-elif args.CNN_Seq2Seq_with_attention ==1:model_name = 'CNN_seq2seq'
-elif args.learning_phrase==1: model_name = 'seq2seq_lpr'
+if args.attn ==1: model_name = 'seq2seq_attn'
+elif args.CNN ==1:model_name = 'CNN_seq2seq'
+elif args.lpr==1: model_name = 'seq2seq_lpr'
 else: model_name = 'seq2seq'
 
 for epoch in range(N_EPOCHS):

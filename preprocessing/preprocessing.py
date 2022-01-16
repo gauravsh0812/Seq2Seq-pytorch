@@ -89,6 +89,6 @@ def preprocess(args_cnn, device):
             device = device,
             batch_size = 256,
             sort_within_batch = True,
-            sort_key = lambda x: len(x.src))
+            sort_key = lambda x: len(x.latex))
 
     return SRC, TRG, train_iter, test_iter, val_iter
