@@ -126,7 +126,7 @@ for epoch in range(N_EPOCHS):
 
     start_time = time.time()
 
-    train_loss = train(model, train_iter, optimizer, criterion, CLIP)
+    train_loss = train(model, train_iter, optimizer, criterion, CLIP, args.attn, args.CNN)
     valid_loss = evaluate(model, val_iter, criterion)
 
     end_time = time.time()

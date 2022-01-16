@@ -41,7 +41,7 @@ class Encoder_CNN(nn.Module):
         # create a position tensor of shape [batch, seq_len].
         # can be build in the following way:
         # [batch, 1] x [1, seq_len] = [batch, seq_len]
-        pos_tensor = torch.arrange(0, seq_len).unsqueeze(0).repeat(batch_size,1)
+        pos_tensor = torch.arange(0, seq_len).unsqueeze(0).repeat(batch_size,1)
         # since we have created pos tensor outside of preprocessing
         # it will not be on "device", hence we nned to move pos_tensor to "device"
         pos_tensor.to(self.device)
@@ -57,7 +57,7 @@ class Encoder_CNN(nn.Module):
         # pass the conv_input to the conv_layers i.e. iterator
         # the input to the first layer of the conv_layers will going to be conv_input
         # and for the next layer, the ouptput of the the prev layer will act as inputs
-        for idx, layer in enumerate(conv_layers):
+        for idx, layer in enumerate(self.conv_layers):
             # conv_input = [batch, hidd_dim, seq_len]
             # layer(conv_input) = [batch, hidd_dim*2, seq_len]
             # layer_output = [batch, hidd_dim, seq_len]

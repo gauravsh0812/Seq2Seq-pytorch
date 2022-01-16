@@ -2,7 +2,7 @@
 
 import torch
 
-def train(model, iterator, optimizer, criterion, clip):
+def train(model, iterator, optimizer, criterion, clip, args_attn, args_cnn):
 
     model.train()
 
@@ -18,7 +18,7 @@ def train(model, iterator, optimizer, criterion, clip):
         if args_cnn == 1:
             # trg = [batch, trg_len]
             trg = trg[:, :-1]
-            output = model(src, src_len, trg)   # [battch, trg_len-1, output_dim]
+            output = model(src, trg)   # [battch, trg_len-1, output_dim]
 
         else:
             output = model(src, src_len, trg, True, 0.5)
