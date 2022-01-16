@@ -7,7 +7,7 @@ from train import train
 from test import evaluate
 from preprocessing.preprocessing import preprocess
 from model.model import Encoder, Decoder, LearningPhrase_Decoder, Seq2Seq
-from model.model_with_attention import Encoder_Attn, Decoder_Att, Seq2Seq_Attn, Attention
+from model.model_with_attention import Encoder_Attn, Decoder_Attn, Seq2Seq_Attn, Attention
 from model.CNN_seq2seq_model import Encoder_CNN, Decoder_CNN, Seq2Seq_CNN
 import time
 import math
@@ -15,11 +15,11 @@ import argparse
 
 # argument
 parser = argparse.ArgumentParser()
-parser.add_argument( '--learning_phrase', type=int, metavar='', required=True,
+parser.add_argument( '--lpr', type=int, metavar='', required=True,
                     help='Learning Phrase Decoder')
-parser.add_argument( '--Seq2Seq_with_attention', type=int, metavar='', required=True,
+parser.add_argument( '--attn', type=int, metavar='', required=True,
                     help='run model with attention')
-parser.add_argument( '--CNN_Seq2Seq_with_attention', type=int, metavar='', required=True,
+parser.add_argument( '--CNN', type=int, metavar='', required=True,
                     help='use CNN2CNN for Seq2Seq')
 args = parser.parse_args()
 
@@ -46,19 +46,23 @@ def define_model(args_learning_phrase, args_attn, args_cnn, SRC, TRG, device):
         ENC_KERNEL_SIZE = 3
         DEC_KERNEL_SIZE = 3
 
+    print(args_cnn)
+    print(args_attn)
 
     if args_cnn == 1:
+        print('in CNN model')
         enc = Encoder_CNN(SRC_DIM, ENC_EMB_DIM, ENC_HID_DIM, ENC_LAYERS, ENC_KERNEL_SIZE, ENC_DROPOUT,  device)
         dec = Decoder_CNN(OUTPUT_DIM, DEC_EMB_DIM, DEC_HID_DIM, DEC_LAYERS, DEC_KERNEL_SIZE, DEC_DROPOUT, TRG_PAD_IDX, device)
 
         model = Seq2Seq_CNN(enc, dec)
 
     elif args_attn == 1:
+        print('in attn model')
         attention = Attention(ENC_HID_DIM, DEC_HID_DIM)
         enc = Encoder_Attn(src_DIM, ENC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, N_LAYERS, ENC_DROPOUT)
         dec = Decoder_Attn(OUTPUT_DIM, DEC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, N_LAYERS, DEC_DROPOUT, attention)
 
-        model = Seq2Seq_Attn(enc, dec, SRC_PAD_IDX device)
+        model = Seq2Seq_Attn(enc, dec, SRC_PAD_IDX, device)
 
     else:
 
@@ -101,8 +105,8 @@ SRC, TRG, train_iter, test_iter, val_iter = preprocess(args.CNN, device)
 
 TRG_PAD_IDX = TRG.vocab.stoi[TRG.pad_token]
 
-model = define_model(args.learning_phrase, args.Seq2Seq_with_attention,
-                          args.CNN_Seq2Seq_with_attention, SRC, TRG, device)
+model = define_model(args.lpr, args.attn,
+                          args.CNN, SRC, TRG, device)
 model.to(device)
 
 print('MODEL: ')

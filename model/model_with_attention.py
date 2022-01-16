@@ -26,7 +26,7 @@ class Encoder_Attn(nn.Module):
         packed_embedded = nn.utils.rnn.pack_padded_sequence(embedded, src_len.to('cpu'))
         packed_output, (hidden_forward_backward, cell_forward_backward) = self.lstm(embedded)
         # unpack the output
-        output, length = nn.utils.rnn.pad_packed_sequence(packed_output))  # no need of length
+        output, length = nn.utils.rnn.pad_packed_sequence(packed_output)  # no need of length
         # output = [src_len, batch,  enc_hidd_dim*n_directions]
         # hidden_for_back = cell_for_back = [n_layer*n_directions, batch, enc_hidd_dim]
         forward_hidden, backward_hidden = hidden_forward_backward[-2,:,:], hidden_forward_backward[-1,:,:]
