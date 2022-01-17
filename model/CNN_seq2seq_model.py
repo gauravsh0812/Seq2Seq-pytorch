@@ -95,7 +95,7 @@ class Decoder_CNN(nn.Module):
                                           kernel_size = kernel_size) for _ in range(n_layers)])
             self.drop = nn.Dropout(dropout)
 
-        def attention(conved, emb_conved, enc_conved, enc_combined):
+        def attention(self, conved, emb_conved, enc_conved, enc_combined):
             # conved = [b,h,tl]
             # emb_conved = [b,trg_l,e]
             # enc_conved/enc_combined = [b,src_l,e]
@@ -130,7 +130,7 @@ class Decoder_CNN(nn.Module):
                 combined = (attn_combined + conv_input) * self.scale   # [b,h,l]
                 conv_input  = combined
 
-            output = self.fc(self.drop(self.hid2emb(combined.permute(0,2,1))))      # [b,l,o]
+            output = self.fc(self.drop(self.fc_hid2emb(combined.permute(0,2,1))))      # [b,l,o]
 
             return output, attn
 
