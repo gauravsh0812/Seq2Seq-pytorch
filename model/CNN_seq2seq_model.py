@@ -123,9 +123,9 @@ class Decoder_CNN(nn.Module):
                 pad_tensor = torch.zeros(batch_size, self.hidd_dim, self.kernel_size-1).fill_(self.trg_pad_idx).to(self.device)
                 # conv_input = [b,h,l+k-1]
                 conved = F.glu(self.drop(layer(torch.cat((conv_input, pad_tensor), dim=2))), dim=1)  # dec_conved = [b,h,l]
-                emb_conved = self.fc_hid2emb(conved)  # [b,e,l]
-                emb_conved = (emb_conved.permute(0,2,1) + embedded) * self.scale # [b,l,e]
-                attn, attn_combined = attention(conved, emb_conved, enc_conved, enc_combined)
+                emb_conved = self.fc_hid2emb(conved.permute(0,2,1))  # [b,l, e]
+                emb_conved = (emb_conved+ embedded) * self.scale # [b,l,e]
+                attn, attn_combined = self.attention(conved, emb_conved, enc_conved, enc_combined)
                 # final residual connection
                 combined = (attn_combined + conv_input) * self.scale   # [b,h,l]
                 conv_input  = combined
