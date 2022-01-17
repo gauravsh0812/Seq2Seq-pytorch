@@ -95,7 +95,7 @@ def epoch_time(start_time, end_time):
     return elapsed_mins, elapsed_secs
 
 
-N_EPOCHS = 10
+N_EPOCHS = 1
 CLIP = 1
 
 best_valid_loss = float('inf')
@@ -127,7 +127,7 @@ for epoch in range(N_EPOCHS):
     start_time = time.time()
 
     train_loss = train(model, train_iter, optimizer, criterion, CLIP, args.attn, args.CNN)
-    valid_loss = evaluate(model, val_iter, criterion)
+    valid_loss = evaluate(model, val_iter, criterion, args.CNN)
 
     end_time = time.time()
 
@@ -135,14 +135,16 @@ for epoch in range(N_EPOCHS):
 
     if valid_loss < best_valid_loss:
         best_valid_loss = valid_loss
-        torch.save(model.state_dict(), f'{model_name}-model.pt')
+        torch.save(model.state_dict(), f'trained_models/{model_name}-model.pt')
 
     print(f'Epoch: {epoch+1:02} | Time: {epoch_mins}m {epoch_secs}s')
     print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
     print(f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
 
-model.load_state_dict(torch.load(f'{model_name}-model.pt'))
+print('final model saved at:  ', f'trained_models/{model_name}-model.pt')
 
-test_loss = evaluate(model, test_iter, criterion)
+model.load_state_dict(torch.load(f'trained_models/{model_name}-model.pt'))
+
+test_loss = evaluate(model, test_iter, criterion, args.CNN)
 
 print(f'| Test Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f} |')
