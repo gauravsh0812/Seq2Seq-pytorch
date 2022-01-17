@@ -145,9 +145,9 @@ class Seq2Seq_CNN(nn.Module):
         # src = [batch, src_len]
         # trg = [batch, trg_len-1] ; since we don't want to give <eos> as input token
         enc_conved, enc_combined = self.encoder(src)
-        print('======='*5)
-        print('shape of enc_coved: ', enc_conved.shape)
-        print('shape of enc_combined: ', enc_combined.shape)
+        #print('======='*5)
+        #print('shape of enc_coved: ', enc_conved.shape)
+        #print('shape of enc_combined: ', enc_combined.shape)
         output, attn = self.decoder(trg, enc_conved, enc_combined)
         #print ('shape of output_dec:  ', output.shape)
         #print('shape of attn:  ', attn.shape)
