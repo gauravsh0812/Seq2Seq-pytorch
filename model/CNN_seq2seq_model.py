@@ -61,7 +61,7 @@ class Encoder_CNN(nn.Module):
             # conv_input = [batch, hidd_dim, seq_len]
             # layer(conv_input) = [batch, hidd_dim*2, seq_len]
             # layer_output = [batch, hidd_dim, seq_len]
-            layer_output = F.glu(self.drop(layer(conv_input)))
+            layer_output = F.glu(self.drop(layer(conv_input)), dim =1)
             conved = (layer_output + conv_input) * self.scale
             # conved = [batch, hidd_dim, seq_len]
             conv_input = conved
@@ -83,7 +83,7 @@ class Decoder_CNN(nn.Module):
             self.kernel_size = kernel_size
             self.device = device
             self.trg_pad_idx = trg_pad_idx
-
+            self.hidd_dim = hidd_dim
             self.token_emb = nn.Embedding(output_dim, emb_dim)
             self.pos_emb = nn.Embedding(max_length, emb_dim)
 
@@ -114,16 +114,16 @@ class Decoder_CNN(nn.Module):
             trg_len = trg.shape[1]
 
             # embedded = [batch, trg_len, emb_dim] == [b, l, e]
-            pos_tensor = torch.arrange(0, trg_len).unsqueeze(0).repeat(batch_size, 1).to(self.device)
+            pos_tensor = torch.arange(0, trg_len).unsqueeze(0).repeat(batch_size, 1).to(self.device)
             embedded = self.drop(self.token_emb(trg) + self.pos_emb(pos_tensor))
             conv_input = self.fc_emb2hid(embedded).permute(0,2,1)   # [b,h,l]
-            for layer in conv_layers:
+            for layer in self.conv_layers:
                 # let's first do padding
                 # pad_tensor = [b,h,k-1]
-                pad_tensor = torch.zeros(batch_size, hidd_dim, kernel_size-1).fill_(trg_pad_idx).to(self.device)
+                pad_tensor = torch.zeros(batch_size, self.hidd_dim, self.kernel_size-1).fill_(self.trg_pad_idx).to(self.device)
                 # conv_input = [b,h,l+k-1]
-                conved = F.glu(self.drop(layer(torch.cat((conv_input, pad_tensor), dim=2))))  # dec_conved = [b,h,l]
-                emb_conved = self.fc_hid2emb(dec_conved)  # [b,e,l]
+                conved = F.glu(self.drop(layer(torch.cat((conv_input, pad_tensor), dim=2))), dim=1)  # dec_conved = [b,h,l]
+                emb_conved = self.fc_hid2emb(conved)  # [b,e,l]
                 emb_conved = (emb_conved.permute(0,2,1) + embedded) * self.scale # [b,l,e]
                 attn, attn_combined = attention(conved, emb_conved, enc_conved, enc_combined)
                 # final residual connection
