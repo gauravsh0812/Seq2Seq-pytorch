@@ -13,8 +13,6 @@ torch.cuda.manual_seed(SEED)
 #only for CUDA
 torch.use_deterministic_algorithms(True)
 
-#device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
 def preprocess(args_cnn, device):
 
     print('preprocessing data...')
@@ -30,13 +28,13 @@ def preprocess(args_cnn, device):
     train_val, test = train_test_split(df, test_size = 0.1)
     train, val = train_test_split(train_val, test_size=0.1)
 
-    train.to_csv('data/train.csv', index=False)
-    test.to_csv('data/test.csv', index=False)
-    val.to_csv('data/val.csv', index=False)
+    train.to_csv('data/train_s2s.csv', index=False)
+    test.to_csv('data/test_s2s.csv', index=False)
+    val.to_csv('data/val_s2s.csv', index=False)
 
-    train.to_json('data/train.json', orient='records', lines=True)
-    test.to_json('data/test.json', orient='records', lines=True)
-    val.to_json('data/val.json', orient='records', lines=True)
+    train.to_json('data/train_s2s.json', orient='records', lines=True)
+    test.to_json('data/test_s2s.json', orient='records', lines=True)
+    val.to_json('data/val_s2s.json', orient='records', lines=True)
 
     # setting Fields
     # tokenizer will going be default tokenizer i.e. split by spaces
@@ -87,7 +85,7 @@ def preprocess(args_cnn, device):
     train_iter, test_iter, val_iter = BucketIterator.splits(
             (train_data, test_data, val_data),
             device = device,
-            batch_size = 256,
+            batch_size = 250,
             sort_within_batch = True,
             sort_key = lambda x: len(x.latex))
 
