@@ -61,5 +61,7 @@ def preprocess(args_opennmt, device):
     TRG.build_vocab(train_data, min_freq = 10)
 
     # dataloader
-    data_loader = torch.utils.data.DataLoader(train_set, batch_size=250)
+    data_loader = {}
+    for DATA in ['train_data', 'val_data']:
+        data_loader[DATA] = torch.utils.data.DataLoader(DATA, batch_size=250)
     return TRG, data_loader

@@ -10,7 +10,7 @@ import torchtext
 
 class Encoder(nn.Module):
 
-    def __init__(self, input_channel, hid_dim, n_layers, kernel_size, dropout, device):
+    def __init__(self, input_channel, hid_dim, n_layers, dropout, device):
         super(Encoder, self).__init__()
 
         # kernel size must be odd
@@ -58,7 +58,7 @@ class Encoder(nn.Module):
 
         all_outputs = []
         for ROW in range(0, enc_output.shape(2)):
-            # [batch, 512, W] since for each row,
+            # row => [batch, 512, W] since for each row,
             # it becomes a 2d matrix of [512, W] for all batches
             row = enc_output[:,:,ROW,:]
             row = row.permute(2,0,1)  # [W, batch, 512(enc_output)]
@@ -73,6 +73,7 @@ class Encoder(nn.Module):
             all_outputs.append(lstm_output.unsqueeze(0))
 
         final_encoder_output = torch.cat(all_outputs, dim =0)  #[H, W+1, BATCH, hid_dimx2]
+        # modifying it to [H*W+1, batch, hid_dimx2]
         final_encoder_output = final_encoder_output.view(
                                             final_encoder_output.shape[0]*final_encoder_output.shape[1],
                                             final_encoder_output.shape[2], final_encoder_output.shape[3])
@@ -93,13 +94,13 @@ class Attention(nn.Module):
         self.attn = torch.tanh(nn.Linear(hid_dim*4, hid_dim))
         self.attn_vector = nn.Linear(hid_dim, 1)
 
-    def forward(self, final_encoder_output, hidden, cell):
+    def forward(self, final_encoder_output, hidden):
         # final_encoder_output [H*W+1, batch, hid_dim*2]
         # hidden/cell = [batch, hid_dim]
         hidden = hidden.unsqueeze(0).repeat(final_encoder_output.shape[0], 1, 1)
-        cell = cell.unsqueeze(0).repeat(final_encoder_output.shape[0], 1, 1)
+        #cell = cell.unsqueeze(0).repeat(final_encoder_output.shape[0], 1, 1)
         # hidden/cell = [H*W+1, batch, hid_dim]
-        energy = self.attn(torch.cat((final_encoder_output, hidden , cell), dim=2))
+        energy = self.attn(torch.cat((final_encoder_output, hidden), dim=2))
         # energy = [H*W+1, batch, hid_dim]
         # attention only has to be over seq length, therefor what we want as output
         # is a tensor of dimension [batch, src_len] i.e. [batch, H*W+1]
@@ -121,7 +122,8 @@ class Decoder(nn.Module):
         # trg = [batch, trg_len]
         trg = trg.unsqueeze(0)  # [1, batch, trg_len]
         embed = self.drop(self.emb(trg))  # [1, batch, emb_dim]
-        attn  = self.attention(final_encoder_output, hidden, cell).unsqueeze(1)  # [batch,1, H*W+1]
+        # we don't need to pass "cell" states too attention modules
+        attn  = self.attention(final_encoder_output, hidden).unsqueeze(1)  # [batch,1, H*W+1]
         # final_encoder_output [H*W+1, batch, hid_dim*2]
         final_encoder_output = final_encoder_output.permute(1,0,2)  # [batch, H*W+1, hid_dim*2]
         # final bmm dimension will going to be [batch, 1, hid_dim*2]
@@ -133,3 +135,39 @@ class Decoder(nn.Module):
         prediction = self.fc(prediction_input.squeeze(0))
 
         return prediction, hidden.squeeze(0), cell.squeeze(0)
+
+class Seq2Seq(nn.Module):
+    super(Seq2Seq, self).__init__()
+
+    def __init__(self, encoder, decoder, device):
+        self.encoder = encoder
+        self.decoder = decoder
+        self.device = device
+
+    def forward(self, src, trg, teacher_force_flag, teacher_forcing_ratio):
+        # src = image of shape [batch, C_in, W, H]
+        batch_size = src.shape[0]
+        # run the encoder and get the last hidden, and cell states
+        # along with the enc_outputs
+        enc_output, hidden, cell = self.encoder(src)
+
+        # running Decoder
+        # trg = [trg_len, batch_size]
+        trg_len = trg.shape[0]
+        trg_dim = self.decoder.output_dim
+        outputs = torch.zeros(batch_size, trg_len, trg_dim).to(self.device)
+
+        init_src = trg[0,:]
+
+        for t in range(1, trg_len):
+            output, hidden, cell = self.decoder(init_src, hidden, cell, enc_output)
+            outputs[t]=output
+            top1 = output.argmax(1)
+            # decide if teacher forcing shuuld be used or not
+            teacher_force = False
+            if teacher_force_flag:
+                teacher_force = random.random() < teacher_forcing_ratio
+
+            src = trg[t] if teacher_force else top1
+
+        return outputs
