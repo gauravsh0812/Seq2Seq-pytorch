@@ -54,10 +54,10 @@ class Attention(nn.Module):
             # enc_outputs = [seq_len, batch, enc_hidd_dim*2]
             src_len = enc_outputs.shape[0]
 
-            hidden = hidden.unsqueeze(1).repeat(src_len, 1, 1)
+            hidden = hidden.unsqueeze(0).repeat(src_len, 1, 1)
             # hidden = [src_len, batch, dec_hidd_dim]
 
-            energy = self.attn(torch.cat(hidden, enc_outputs), dim=2)
+            energy = self.attn(torch.cat((hidden, enc_outputs), dim=2))
             # torch.cat(hidden, enc_outputs), dim=2 ==> [src_len, batch, enc_hidd_dim*2+dec_hidd_dim]
             # energy = [src_len, batch, dec_hidd_dim] and v=[dec_hidd_dim, 1]
             attn_vector = self.v(energy).squeeze(2)   # [src_len, batch]
